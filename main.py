@@ -80,6 +80,9 @@ class Comments(db.Model):
     blog_post = relationship("BlogPost", back_populates="comments")
 
 
+db.create_all()
+
+
 # ----------------------------- HELPER AND DECORATOR FUNCTIONS -----------------------------
 def create_user(**kwargs):
     new_user = User()

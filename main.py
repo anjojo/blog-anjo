@@ -62,7 +62,7 @@ class BlogPost(db.Model):
 
 
 class Comments(db.Model):
-    __tablename__ = "comment"
+    __tablename__ = "comments"
     id = db.Column(db.Integer, primary_key=True)
     blog_id = db.Column(db.Integer, db.ForeignKey("blog_posts.id"))
     author_id = db.Column(db.Integer, db.ForeignKey('user.id'))
@@ -154,21 +154,20 @@ def logout():
 def show_post(post_id):
     form = CommentForm()
     requested_post = BlogPost.query.get(post_id)
-
     if form.validate_on_submit():
         if not current_user.is_authenticated:
-            flash("You need to login or register to comment.")
-            return redirect(url_for("login"))
+            flash("You need to login first before commenting.")
+            return redirect(url_for('login'))
 
         new_comment = Comments(
-            text=form.comment_text.data,
+            text=form.body.data,
             comment_author=current_user,
-            parent_post=requested_post
+            blog_post=requested_post
         )
         db.session.add(new_comment)
         db.session.commit()
 
-    return render_template("post.html", post=requested_post, form=form, current_user=current_user)
+    return render_template("post.html", post=requested_post, current_user=current_user, form=form)
 
 
 @app.route("/about")

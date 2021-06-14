@@ -70,7 +70,7 @@ class Comments(db.Model):
     blog_post = relationship("BlogPost", back_populates="comments")
     # relationship to users
     comment_author = relationship("User", back_populates="comments")
-    text = db.Column(db.Text(1000), nullable=False)
+    text = db.Column(db.Text, nullable=False)
 
 
 # db.create_all()

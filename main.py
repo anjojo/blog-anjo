@@ -73,7 +73,7 @@ class Comments(db.Model):
     text = db.Column(db.Text(1000), nullable=False)
 
 
-db.create_all()
+# db.create_all()
 
 
 # ----------------------------- HELPER AND DECORATOR FUNCTIONS -----------------------------

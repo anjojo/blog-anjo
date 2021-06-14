@@ -9,23 +9,22 @@ from sqlalchemy.orm import relationship
 from flask_login import UserMixin, login_user, LoginManager, login_required, current_user, logout_user
 from forms import CreatePostForm, RegisterForm, LoginForm, CommentForm
 from flask_gravatar import Gravatar
-import os
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.environ.get("SECRET_KEY")
+app.config['SECRET_KEY'] = '8BYkEfBA6O6donzWlSihBXox7C0sKR6b'
 ckeditor = CKEditor(app)
 Bootstrap(app)
+gravatar = Gravatar(app, size=100, rating='g', default='retro', force_default=False, force_lower=False, use_ssl=False, base_url=None)
 
 # ----------------------------- CONNECT TO DB -----------------------------
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URL")
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///blog.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = MYSQLAlchemy(app)
+
 
 # -------------------------------- CONFIGURE LOGIN MANAGER --------------------------------
 login_manager = LoginManager()
 login_manager.init_app(app)
-
-gravatar = Gravatar(app, size=100, rating='g', default='retro', force_default=False, force_lower=False, use_ssl=False, base_url=None)
 
 
 @login_manager.user_loader
@@ -36,14 +35,12 @@ def load_user(user_id):
 # ----------------------------- CONFIGURE TABLES -----------------------------
 class User(db.Model, UserMixin):
     __tablename__ = "user"
-    id = db.Column(db.Integer(), primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(100), unique=True)
     password = db.Column(db.String(100))
-    name = db.Column(db.String(1000))
-
+    name = db.Column(db.String(100))
     # relationship to blogpost
     posts = relationship("BlogPost", back_populates="author")
-
     # relationship to comments table
     comments = relationship("Comments", back_populates="comment_author")
 
@@ -51,33 +48,28 @@ class User(db.Model, UserMixin):
 class BlogPost(db.Model):
     __tablename__ = "blog_posts"
     id = db.Column(db.Integer, primary_key=True)
-
     # relationship to users
     author_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     author = relationship("User", back_populates="posts")
-
-    # relationship to comments
-    comments = relationship("Comments", back_populates="blog_post")
-
     title = db.Column(db.String(250), unique=True, nullable=False)
     subtitle = db.Column(db.String(250), nullable=False)
     date = db.Column(db.String(250), nullable=False)
     body = db.Column(db.Text, nullable=False)
     img_url = db.Column(db.String(250), nullable=False)
+    # relationship to comments
+    comments = relationship("Comments", back_populates="blog_post")
 
 
 class Comments(db.Model):
     __tablename__ = "comments"
-    id = db.Column(db.Integer(), primary_key=True)
-    text = db.Column(db.Text(1000), nullable=False)
-
-    # relationship to users
-    author_id = db.Column(db.Integer(), db.ForeignKey('user.id'))
-    comment_author = relationship("User", back_populates="comments")
-
+    id = db.Column(db.Integer, primary_key=True)
+    blog_id = db.Column(db.Integer, db.ForeignKey("blog_posts.id"))
+    author_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     # relationship to blog_posts
-    blog_id = db.Column(db.Integer(), db.ForeignKey("blog_posts.id"))
     blog_post = relationship("BlogPost", back_populates="comments")
+    # relationship to users
+    comment_author = relationship("User", back_populates="comments")
+    text = db.Column(db.Text(1000), nullable=False)
 
 
 db.create_all()
@@ -99,8 +91,7 @@ def admin_only(function):
     def wrapper_function(*args, **kwargs):
         if current_user.id != 1:
             return abort(403)
-        else:
-            return function(*args, **kwargs)
+        return function(*args, **kwargs)
     return wrapper_function
 
 
@@ -174,8 +165,7 @@ def show_post(post_id):
         else:
             flash("You need to login first before commenting.")
             return redirect(url_for('login'))
-    all_comments = Comments.query.all()
-    return render_template("post.html", post=requested_post, current_user=current_user, form=form, all_comments=all_comments)
+    return render_template("post.html", post=requested_post, current_user=current_user, form=form)
 
 
 @app.route("/about")

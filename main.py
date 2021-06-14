@@ -62,7 +62,7 @@ class BlogPost(db.Model):
 
 
 class Comments(db.Model):
-    __tablename__ = "comments"
+    __tablename__ = "comment"
     id = db.Column(db.Integer, primary_key=True)
     blog_id = db.Column(db.Integer, db.ForeignKey("blog_posts.id"))
     author_id = db.Column(db.Integer, db.ForeignKey('user.id'))
@@ -73,7 +73,7 @@ class Comments(db.Model):
     text = db.Column(db.Text, nullable=False)
 
 
-# db.create_all()
+db.create_all()
 
 
 # ----------------------------- HELPER AND DECORATOR FUNCTIONS -----------------------------
